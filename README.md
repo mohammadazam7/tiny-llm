@@ -5,8 +5,8 @@ byte-pair-encoding tokenizer, a decoder-only transformer, a training loop, sampl
 scaling experiments that measure how validation loss falls as the model grows. It trains
 on a laptop CPU on public-domain text.
 
-> **Status:** design stage. The design doc and roadmap are written; the tokenizer is the
-> first piece being built. No loss curve or sample appears here until a run has produced
+> **Status:** milestone 1 in progress. The tokenizer and data preparation work; the model
+> comes next. No loss curve or sample appears here until a run has produced
 > it, and every result will state the hardware it was measured on.
 
 ## Why build a small one
@@ -37,6 +37,32 @@ flowchart LR
 | Training | AdamW, linear warmup then cosine decay, gradient accumulation and clipping, mixed precision where the device supports it, resumable checkpoints |
 | Sampling | Temperature, top-k and nucleus sampling from a checkpoint |
 | Experiments | The same data and budget across several model sizes, with charts in `docs/` |
+
+## Data and tokenizer
+
+The corpus is Tiny Shakespeare (about 1.1 MB of plays, public domain), downloaded from a
+pinned commit and checked against its SHA-256 by `scripts/fetch_corpus.sh`. The last
+10 percent, cut at a line break, is held out for validation, and the tokenizer is
+trained on the rest only.
+
+```bash
+scripts/fetch_corpus.sh                       # data/raw/tinyshakespeare.txt
+tiny-llm prepare data/raw/tinyshakespeare.txt --vocab-size 512
+```
+
+Characters per token, the tokenizer's compression, measured on the training text and on
+the held-out text it never saw:
+
+| Vocabulary | Training text | Held-out text | Time to prepare |
+|---|---|---|---|
+| 256 (bytes only) | 1.00 | 1.00 | 0.4 s |
+| 512 | 1.96 | 1.90 | 7.4 s |
+| 1,024 | 2.45 | 2.28 | 19.7 s |
+| 2,048 | 2.91 | 2.59 | 40.5 s |
+
+The gap between the two columns grows with the vocabulary: larger vocabularies learn
+merges that fit the training plays more than English in general. Measured on two cores
+of an Intel Xeon at 2.1 GHz with the pure Python tokenizer.
 
 ## Honest limits
 
