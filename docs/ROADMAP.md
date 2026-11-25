@@ -4,7 +4,7 @@ Target: v1.0 between **Dec 21 and Dec 23, 2026**. Each milestone ends with a pul
 request, a tagged release and a changelog entry.
 
 - [x] **M0 (Nov 16): foundation.** Repository, CI, design doc, roadmap.
-- [ ] **M1 (Nov 17 to 24): tokenizer and data.** Byte-level BPE (train, encode, decode,
+- [x] **M1 (Nov 17 to 24): tokenizer and data.** Byte-level BPE (train, encode, decode,
   save and load), corpus preparation from public-domain text, token shards with a
   held-out validation split.
 - [ ] **M2 (Nov 25 to Dec 3): the model.** Decoder-only transformer with causal
