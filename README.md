@@ -78,8 +78,8 @@ from tiny_llm.model import ModelConfig, TinyLM
 
 config = ModelConfig(vocab_size=1024, context=128, layers=4, heads=4, width=128)
 model = TinyLM(config)
-logits = model(torch.randint(0, 1024, (8, 128)))   # (8, 128, 1024)
-config.parameter_count()                            # 940,800
+logits = model(torch.randint(0, 1024, (8, 128)))  # (8, 128, 1024)
+config.parameter_count()  # 940,800
 ```
 
 The parameter count is a formula, `V*W + C*W + L*(12*W*W + 13*W) + 2*W` for vocabulary
