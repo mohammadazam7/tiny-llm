@@ -103,6 +103,8 @@ rich==15.0.0
     # via pip-audit
 ruff==0.17.5
     # via tiny-llm (pyproject.toml:dev)
+setuptools==84.2.1
+    # via tiny-llm (pyproject.toml:dev)
 sortedcontainers==2.4.0
     # via cyclonedx-python-lib
 tomli==2.5.0
