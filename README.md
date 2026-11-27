@@ -5,9 +5,9 @@ byte-pair-encoding tokenizer, a decoder-only transformer, a training loop, sampl
 scaling experiments that measure how validation loss falls as the model grows. It trains
 on a laptop CPU on public-domain text.
 
-> **Status:** milestone 1 in progress. The tokenizer and data preparation work; the model
-> comes next. No loss curve or sample appears here until a run has produced
-> it, and every result will state the hardware it was measured on.
+> **Status:** milestone 2. The tokenizer, data preparation and the model are in place and
+> tested; the training loop comes next. No loss curve or sample appears here until a run
+> has produced it, and every result will state the hardware it was measured on.
 
 ## Why build a small one
 
@@ -63,6 +63,40 @@ the held-out text it never saw:
 The gap between the two columns grows with the vocabulary: larger vocabularies learn
 merges that fit the training plays more than English in general. Measured on two cores
 of an Intel Xeon at 2.1 GHz with the pure Python tokenizer.
+
+## The model
+
+`tiny_llm.model.TinyLM` is a decoder-only transformer in about 200 lines. Token and
+learned position embeddings feed pre-norm blocks of causal self-attention and a GELU MLP;
+the output head shares its weights with the token embedding. Attention is written out by
+hand, so the causal mask is a line of code the tests can check and the attention weights
+of every layer can be read back with `model.attention(tokens)`.
+
+```python
+import torch
+from tiny_llm.model import ModelConfig, TinyLM
+
+config = ModelConfig(vocab_size=1024, context=128, layers=4, heads=4, width=128)
+model = TinyLM(config)
+logits = model(torch.randint(0, 1024, (8, 128)))   # (8, 128, 1024)
+config.parameter_count()                            # 940,800
+```
+
+The parameter count is a formula, `V*W + C*W + L*(12*W*W + 13*W) + 2*W` for vocabulary
+V, context C, width W and L layers, and a test holds the model to it. With a vocabulary
+of 1,024 and a context of 128:
+
+| Layers | Heads | Width | Parameters | In the embeddings |
+|---|---|---|---|---|
+| 2 | 2 | 64 | 173,824 | 42% |
+| 4 | 4 | 128 | 940,800 | 16% |
+| 6 | 6 | 192 | 2,890,752 | 8% |
+| 8 | 8 | 256 | 6,613,504 | 4% |
+
+These are the sizes the scaling experiments will train. What the tests check before any
+training: changing a token never changes an earlier prediction, attention weights above
+the diagonal are exactly zero, the loss of a fresh model is close to ln(V) (a uniform
+guess), every parameter receives a gradient, and one batch can be memorised.
 
 ## Honest limits
 
