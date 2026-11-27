@@ -1,11 +1,12 @@
 .PHONY: install lock lint format typecheck test audit check clean
 
 install:
+	pip install torch==2.15.0 --index-url https://download.pytorch.org/whl/cpu
 	pip install -r requirements-dev.lock
 	pip install -e . --no-deps
 
 lock:
-	uv pip compile pyproject.toml --extra dev --python-version 3.11 --universal -o requirements-dev.lock
+	uv pip compile --group dev --python-version 3.11 --universal -o requirements-dev.lock
 
 lint:
 	ruff check .
